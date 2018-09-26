@@ -4,29 +4,30 @@ from tensorboardX import SummaryWriter
 from timeit import default_timer as timer
 
 
+__all__ = ['Trainer']
+
+
 class Trainer:
-    def __init__(self, model, loss_fn, optimizer):
+    def __init__(self, model, optimizer, loss_fn):
         self.model = model
-        self.loss_fn = loss_fn
         self.optimizer = optimizer
+        self.loss_fn = loss_fn
 
     def train(self,
               dataset,
               batch_size,
               n_epochs,
-              shuffle=True,
               val_dataset=None,
               seed=None):
         if seed is not None:
             torch.manual_seed(seed)
 
         writer = SummaryWriter()
-        loader = torch.utils.data.DataLoader(dataset,
-                                             batch_size=batch_size,
-                                             shuffle=shuffle)
+        loader = DataLoader(dataset, batch_size=batch_size, shuffle=True)
         if val_dataset is not None:
-            val_loader = torch.utils.data.DataLoader(val_dataset,
-                                                     batch_size=batch_size)
+            val_loader = DataLoader(val_dataset,
+                                    batch_size=batch_size,
+                                    shuffle=True)
 
         start_time = timer()
         for epoch in range(n_epochs):
@@ -59,3 +60,5 @@ class Trainer:
                         'Learning finished in {:.3f} seconds'
                         .format(timer() - start_time))
         writer.close()
+
+        return self.model
