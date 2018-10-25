@@ -4,9 +4,6 @@ from tensorboardX import SummaryWriter
 from timeit import default_timer as timer
 
 
-__all__ = ['Trainer']
-
-
 class Trainer:
     def __init__(self, model, optimizer, loss_fn):
         self.model = model

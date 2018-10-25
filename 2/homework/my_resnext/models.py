@@ -2,9 +2,6 @@ import torch
 import torch.nn as nn
 
 
-__all__ = ['MyResNeXt', 'resnext50', 'resnext101', 'resnext152']
-
-
 class ResNeXtBottleneckC(nn.Module):
     """
     ResNeXt bottleneck block type C
