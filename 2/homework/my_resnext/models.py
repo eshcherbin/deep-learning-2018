@@ -56,9 +56,8 @@ class ResNeXtBottleneckC(nn.Module):
         result = self.bn3(result).clamp(min=0)
 
         shortcut = x if self.shortcut is None else self.shortcut(x)
-        print('HELLL', x.size(), shortcut.size(), result.size())
         result += shortcut
-        result = self.relu(result)
+        result = result.clamp(min=0)
 
         return result
 
