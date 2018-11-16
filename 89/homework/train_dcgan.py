@@ -56,6 +56,7 @@ def main():
     trainer = DCGANTrainer(generator=generator, discriminator=discriminator,
                            optimizer_d=Adam(discriminator.parameters(), lr=0.0002, betas=(0.5, 0.999)),
                            optimizer_g=Adam(generator.parameters(), lr=0.0002, betas=(0.5, 0.999)),
+                           device='cuda' if config.cuda else 'cpu',
                            metrics_dir='metrics')
 
     trainer.train(dataloader, config.epochs, config.n_show_samples, config.show_img_every, config.log_metrics_every)
