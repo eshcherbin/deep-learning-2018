@@ -7,8 +7,8 @@ import torchvision.datasets as datasets
 from torch.optim import Adam
 from torchvision import transforms
 
-from homework.vae.vae import VAE, loss_function
-from homework.vae.trainer import Trainer
+from vae.vae import VAE, loss_function
+from vae.trainer import Trainer
 
 
 def get_config():
