@@ -19,6 +19,8 @@ def get_config():
     parser.add_argument('--log-name', type=str, default='train_vae.log')
     parser.add_argument('--no-cuda', action='store_true', default=False,
                         help='enables CUDA training')
+    parser.add_argument('--cifar10', action='store_true', default=False,
+                        help='use CIFAR-10 instead of Fashion-MNIST')
     parser.add_argument('--batch-size', type=int, default=256,
                         help='input batch size for training')
     parser.add_argument('--epochs', type=int, default=30,
@@ -47,10 +49,11 @@ def main():
     transform = transforms.Compose([transforms.Scale(config.image_size), transforms.ToTensor(),
                                     ])
                                     # transforms.Normalize(0.5, 0.5)])
-    train_set = datasets.FashionMNIST(train=True, root=config.data_root,
-                                      download=True, transform=transform)
-    test_set = datasets.FashionMNIST(train=False, root=config.data_root,
-                                     download=True, transform=transform)
+    dataset = datasets.CIFAR10 if config.cifar10 else datasets.FashionMNIST
+    train_set = dataset(train=True, root=config.data_root,
+                        download=True, transform=transform)
+    test_set = dataset(train=False, root=config.data_root,
+                       download=True, transform=transform)
     train_loader = torch.utils.data.DataLoader(train_set, batch_size=config.batch_size, shuffle=True,
                                                num_workers=4, pin_memory=True)
     test_loader = torch.utils.data.DataLoader(test_set, batch_size=config.batch_size, shuffle=True,
