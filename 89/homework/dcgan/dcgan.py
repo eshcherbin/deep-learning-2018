@@ -12,13 +12,13 @@ class DCGenerator(nn.Module):
         self.deconv = nn.Sequential(
             nn.BatchNorm2d(512),
             nn.ReLU(inplace=True),
-            nn.ConvTranspose2d(512, 256, 3, stride=2, padding=1),
+            nn.ConvTranspose2d(512, 256, 4, stride=2, padding=1),
             nn.BatchNorm2d(256),
             nn.ReLU(inplace=True),
-            nn.ConvTranspose2d(256, 128, 3, stride=2, padding=1),
+            nn.ConvTranspose2d(256, 128, 4, stride=2, padding=1),
             nn.BatchNorm2d(128),
             nn.ReLU(inplace=True),
-            nn.ConvTranspose2d(128, image_layers, 3, stride=2, padding=1),
+            nn.ConvTranspose2d(128, image_layers, 4, stride=2, padding=1),
             nn.Tanh()
         )
 
@@ -36,13 +36,13 @@ class DCDiscriminator(nn.Module):
         super(DCDiscriminator, self).__init__()
         self.image_size = image_size
         self.conv = nn.Sequential(
-            nn.Conv2d(image_layers, 128, 3, stride=2, padding=1),
+            nn.Conv2d(image_layers, 128, 4, stride=2, padding=1),
             nn.BatchNorm2d(128),
             nn.LeakyReLU(0.2, inplace=True),
-            nn.Conv2d(128, 256, 3, stride=2, padding=1),
+            nn.Conv2d(128, 256, 4, stride=2, padding=1),
             nn.BatchNorm2d(256),
             nn.LeakyReLU(0.2, inplace=True),
-            nn.Conv2d(256, 512, 3, stride=2, padding=1),
+            nn.Conv2d(256, 512, 4, stride=2, padding=1),
             nn.BatchNorm2d(512),
             nn.LeakyReLU(0.2, inplace=True)
         )
