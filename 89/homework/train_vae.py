@@ -7,8 +7,8 @@ import torchvision.datasets as datasets
 from torch.optim import Adam
 from torchvision import transforms
 
-from vae.vae import VAE, loss_function
-from vae.trainer import Trainer
+from homework.vae.vae import VAE, loss_function
+from homework.vae.trainer import Trainer
 
 
 def get_config():
@@ -45,7 +45,8 @@ def main():
         level=logging.INFO)
 
     transform = transforms.Compose([transforms.Scale(config.image_size), transforms.ToTensor(),
-                                    transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))])
+                                    ])
+                                    # transforms.Normalize(0.5, 0.5)])
     train_set = datasets.FashionMNIST(train=True, root=config.data_root,
                                       download=True, transform=transform)
     test_set = datasets.FashionMNIST(train=False, root=config.data_root,
@@ -55,7 +56,7 @@ def main():
     test_loader = torch.utils.data.DataLoader(test_set, batch_size=config.batch_size, shuffle=True,
                                               num_workers=4, pin_memory=True)
 
-    vae = VAE()
+    vae = VAE(enc_hidden=800, latent_size=40, dec_hidden=800)
 
     trainer = Trainer(model=vae, train_loader=train_loader, test_loader=test_loader,
                       optimizer=Adam(vae.parameters(), lr=0.0002, betas=(0.5, 0.999)),
