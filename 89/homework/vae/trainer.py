@@ -19,6 +19,8 @@ class Trainer:
         self.save_root = save_root
         self.writer = SummaryWriter(log_dir=log_dir)
 
+        self.model = self.model.to(self.device)
+
     def train(self, epoch, log_interval):
         self.model.train()
         epoch_loss = 0
