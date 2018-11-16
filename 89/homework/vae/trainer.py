@@ -9,22 +9,29 @@ from tensorboardX import SummaryWriter
 class Trainer:
 
     def __init__(self, model, train_loader, test_loader, optimizer,
-                 loss_function, device='cpu'):
+                 loss_function, device, save_root='ckpt', log_dir=None):
         self.model = model
         self.train_loader = train_loader
         self.test_loader = test_loader
         self.optimizer = optimizer
         self.loss_function = loss_function
         self.device = device
-        self.writer = SummaryWriter()
+        self.save_root = save_root
+        self.writer = SummaryWriter(log_dir=log_dir)
+
+        self.model = self.model.to(self.device)
 
     def train(self, epoch, log_interval):
         self.model.train()
         epoch_loss = 0
 
         for batch_idx, (data, _) in enumerate(self.train_loader):
-            # TODO your code here
-            train_loss = None
+            data = data.to(self.device)
+            self.model.zero_grad()
+            recon_data, mu, logvar = self.model(data)
+            train_loss = self.loss_function(recon_data, data, mu, logvar)
+            train_loss.backward()
+
             epoch_loss += train_loss
             norm_train_loss = train_loss / len(data)
 
@@ -50,15 +57,20 @@ class Trainer:
                                scalar_value=epoch_loss,
                                global_step=epoch)
 
-    def test(self, epoch, batch_size, log_interval):
+        # self.plot_generated(epoch, batch_size)
+        self.save(epoch)
+
+    def test(self, epoch, batch_size, log_interval, show_img_every, n_show_samples):
         self.model.eval()
         test_epoch_loss = 0
 
         for batch_idx, (data, _) in enumerate(self.test_loader):
-            # TODO your code here
-
-            test_loss = None
+            data = data.to(self.device)
+            recon_data, mu, logvar = self.model(data)
+            test_loss = self.loss_function(recon_data, data, mu, logvar)
             test_epoch_loss += test_loss
+
+            batches_per_epoch_test = len(self.test_loader.dataset) // batch_size
 
             if batch_idx % log_interval == 0:
                 msg = 'Test Epoch: {} [{}/{} ({:.0f}%)]\tLoss: {:.6f}'.format(
@@ -67,24 +79,29 @@ class Trainer:
                     100. * batch_idx / len(self.test_loader),
                     test_loss / len(data))
                 logging.info(msg)
-
-                batches_per_epoch_test = len(self.test_loader.dataset) // batch_size
                 self.writer.add_scalar(tag='data/test_loss',
                                        scalar_value=test_loss / len(data),
-                                       global_step=batches_per_epoch_test * (epoch - 1) + batch_idx)
+                                       global_step=batches_per_epoch_test * epoch + batch_idx)
+            if batch_idx % show_img_every == 0:
+                self.plot_generated(recon_data=recon_data.view(*data.size()),
+                                    data=data,
+                                    n_show_samples=n_show_samples,
+                                    global_step=batches_per_epoch_test * epoch + batch_idx)
 
         test_epoch_loss /= len(self.test_loader.dataset)
         logging.info('====> Test set loss: {:.4f}'.format(test_epoch_loss))
         self.writer.add_scalar(tag='data/test_epoch_loss',
                                scalar_value=test_epoch_loss,
                                global_step=epoch)
-        self.plot_generated(epoch, batch_size)
 
-    def plot_generated(self, epoch, batch_size):
-        # TODO your code here
-        pass
+    def plot_generated(self, recon_data, data, n_show_samples, global_step):
+        x = vutils.make_grid(recon_data[:n_show_samples, :, :, :], normalize=True, scale_each=True)
+        self.writer.add_image('img/recon', x, global_step)
 
-    def save(self, checkpoint_path):
-        dir_name = os.path.dirname(checkpoint_path)
-        os.makedirs(dir_name, exist_ok=True)
-        torch.save(self.model.state_dict(), checkpoint_path)
+        y = vutils.make_grid(data[:n_show_samples, :, :, :], normalize=True, scale_each=True)
+        self.writer.add_image('img/real', y, global_step)
+
+    def save(self, epoch):
+        os.makedirs(self.save_root, exist_ok=True)
+        torch.save(self.model.state_dict(), os.path.join(self.save_root, f'vae_epoch_{epoch}.pt'))
+
